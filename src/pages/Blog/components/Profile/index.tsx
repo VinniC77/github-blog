@@ -1,38 +1,81 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { ExternalLink } from "../../../../components/Header/ExternalLink";
 import { ProfileContainer, ProfileDetails, ProfilePicture } from "./style";
-import { faGithub } from '@fortawesome/free-brands-svg-icons';
+import { faGithub } from "@fortawesome/free-brands-svg-icons";
 import { faBuilding, faUserGroup } from "@fortawesome/free-solid-svg-icons";
+import { useCallback, useEffect, useState } from "react";
+import { api } from "../../../../lib/axios";
+import { Spinner } from "../../../../components/Spinner";
+
+const userName = import.meta.env.VITE_GITHUB_USERNAME;
+
+interface ProfileData {
+  login: string;
+  bio: string;
+  avatar_url: string;
+  html_url: string;
+  name: string;
+  company?: string;
+  followers: number;
+}
 
 export function Profile() {
+  const [profileData, setProfileData] = useState<ProfileData>(
+    {} as ProfileData
+  );
+  const [isLoading, setIsLoading] = useState(true);
+
+  const getProfileData = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      const response = await api.get(`/users/${userName}`);
+
+      setProfileData(response.data);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [profileData]);
+
+  useEffect(() => {
+    getProfileData();
+  }, []);
+
   return (
     <ProfileContainer>
-      <ProfilePicture src="https://github.com/VinniC77.png" />
-      <ProfileDetails>
-        <header>
-          <h1>Vinicius Clunc</h1>
-          <ExternalLink text="Github" href="#" />
-        </header>
-        <p>
-          Lorem ipsum dolor, sit amet consectetur adipisicing elit. Numquam
-          maxime sapiente aliquid possimus aliquam, quisquam error accusamus
-          pariatur nihil ut.
-        </p>
-        <ul>
-            <li>
+      {isLoading ? (
+        <Spinner />
+      ) : (
+        <>
+          <ProfilePicture src={profileData.avatar_url} />
+          <ProfileDetails>
+            <header>
+              <h1>{profileData.name}</h1>
+              <ExternalLink
+                text="Github"
+                href={profileData.html_url}
+                target="_blank"
+              />
+            </header>
+            <p>{profileData.bio}</p>
+            <ul>
+              <li>
                 <FontAwesomeIcon icon={faGithub} />
-                VinniC77
-            </li>
-            <li>
-                <FontAwesomeIcon icon={faBuilding} />
-                Valorizza
-            </li>
-            <li>
+                {profileData.login}
+              </li>
+              {profileData?.company && (
+                <li>
+                  <FontAwesomeIcon icon={faBuilding} />
+                  {profileData.company}
+                </li>
+              )}
+              <li>
                 <FontAwesomeIcon icon={faUserGroup} />
-                123 seguidores
-            </li>
-        </ul>
-      </ProfileDetails>
+                {profileData.followers} seguidores
+              </li>
+            </ul>
+          </ProfileDetails>
+        </>
+      )}
     </ProfileContainer>
   );
 }

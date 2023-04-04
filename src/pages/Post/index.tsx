@@ -3,6 +3,7 @@ import { PostHeader } from "./components/PostHeader";
 import { IPost } from "../Blog";
 import { api } from "../../lib/axios";
 import { useParams } from "react-router-dom";
+import { PostContent } from "./components/PostContent";
 
 const userName = import.meta.env.VITE_GITHUB_USERNAME;
 const repoName = import.meta.env.VITE_GITHUB_REPONAME;
@@ -18,7 +19,7 @@ export function Post() {
         try {
             setIsLoading(true);
 
-            const response = api.get(`/repos/${userName}/${repoName}/issues/${id}`)
+            const response = await api.get(`/repos/${userName}/${repoName}/issues/${id}`)
 
             setPostData(response.data)
         } finally {
@@ -32,7 +33,8 @@ export function Post() {
 
     return (
         <>
-        <PostHeader />
+        <PostHeader isLoading={isLoading} postData={postData} />
+        {!isLoading && <PostContent content={postData.body} />}
         </>
     )
 }

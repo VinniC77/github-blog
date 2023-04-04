@@ -35,7 +35,7 @@ export function Blog() {
 
         setPosts(response.data.items);
       } finally {
-        setIsLoading(true);
+        setIsLoading(false);
       }
     },
     [posts]
